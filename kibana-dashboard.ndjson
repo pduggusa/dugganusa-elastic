@@ -1,0 +1,1 @@
+{"id":"dugganusa-overview","type":"dashboard","attributes":{"title":"DugganUSA Threat Intelligence Overview","description":"Overview of DugganUSA STIX feed indicators ingested into Elasticsearch.","panelsJSON":"[]","timeRestore":true,"timeTo":"now","timeFrom":"now-7d","version":1},"references":[]}

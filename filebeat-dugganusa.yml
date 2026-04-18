@@ -1,0 +1,74 @@
+# DugganUSA STIX Feed — Filebeat HTTP JSON Input
+# Polls the STIX feed hourly and indexes indicators into Elasticsearch.
+#
+# Usage:
+#   filebeat -e -c filebeat-dugganusa.yml
+#
+# Environment:
+#   DUGGANUSA_API_KEY — optional, free tier works without one
+
+filebeat.inputs:
+  - type: httpjson
+    enabled: true
+    interval: 1h
+    request.url: "https://analytics.dugganusa.com/api/v1/stix-feed"
+    request.method: GET
+    request.headers:
+      Accept: "application/json"
+      # Uncomment and set your API key for higher rate limits:
+      # Authorization: "Bearer dugusa_YOUR_KEY_HERE"
+    response.split:
+      target: body.objects
+      type: array
+    processors:
+      - decode_json_fields:
+          fields: ["message"]
+          target: ""
+      - add_fields:
+          target: threat
+          fields:
+            feed.name: "DugganUSA"
+            indicator.provider: "DugganUSA LLC"
+
+  # IP blocklist (CSV)
+  - type: httpjson
+    enabled: true
+    interval: 1h
+    request.url: "https://analytics.dugganusa.com/api/v1/stix-feed/ips.csv"
+    request.method: GET
+    processors:
+      - add_fields:
+          target: threat
+          fields:
+            feed.name: "DugganUSA-IPs"
+            indicator.type: "ipv4-addr"
+
+  # Domain blocklist (CSV)
+  - type: httpjson
+    enabled: true
+    interval: 1h
+    request.url: "https://analytics.dugganusa.com/api/v1/stix-feed/domains.csv"
+    request.method: GET
+    processors:
+      - add_fields:
+          target: threat
+          fields:
+            feed.name: "DugganUSA-Domains"
+            indicator.type: "domain-name"
+
+output.elasticsearch:
+  hosts: ["localhost:9200"]
+  index: "dugganusa-threat-intel-%{+yyyy.MM.dd}"
+  # Uncomment for authentication:
+  # username: "elastic"
+  # password: "changeme"
+
+setup.template:
+  name: "dugganusa-threat-intel"
+  pattern: "dugganusa-threat-intel-*"
+
+setup.ilm:
+  enabled: true
+  rollover_alias: "dugganusa-threat-intel"
+  pattern: "{now/d}-000001"
+  policy_name: "dugganusa-threat-intel-policy"
