@@ -56,6 +56,28 @@ filebeat.inputs:
             feed.name: "DugganUSA-Domains"
             indicator.type: "domain-name"
 
+  # Tor relay data (daily consensus)
+  - type: httpjson
+    enabled: true
+    interval: 24h
+    request.url: "https://analytics.dugganusa.com/api/v1/tor/relays?isExit=true&limit=500"
+    request.method: GET
+    request.headers:
+      Accept: "application/json"
+    response.split:
+      target: body.data.relays
+      type: array
+    processors:
+      - add_fields:
+          target: tor
+          fields:
+            feed.name: "DugganUSA-TorRelays"
+      - add_fields:
+          target: threat
+          fields:
+            feed.name: "DugganUSA-TorRelays"
+            indicator.type: "tor-relay"
+
 output.elasticsearch:
   hosts: ["localhost:9200"]
   index: "dugganusa-threat-intel-%{+yyyy.MM.dd}"
