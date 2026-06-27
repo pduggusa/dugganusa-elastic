@@ -5,7 +5,8 @@
 #   filebeat -e -c filebeat-dugganusa.yml
 #
 # Environment:
-#   DUGGANUSA_API_KEY — optional, free tier works without one
+#   DUGGANUSA_API_KEY — REQUIRED. The feed rejects anonymous requests
+#   (401). Register a free key: https://analytics.dugganusa.com/stix/register
 
 filebeat.inputs:
   - type: httpjson
@@ -15,8 +16,9 @@ filebeat.inputs:
     request.method: GET
     request.headers:
       Accept: "application/json"
-      # Uncomment and set your API key for higher rate limits:
-      # Authorization: "Bearer dugusa_YOUR_KEY_HERE"
+      # REQUIRED — the feed rejects anonymous requests (401).
+      # Register a free key: https://analytics.dugganusa.com/stix/register
+      Authorization: "Bearer dugusa_YOUR_KEY_HERE"
     response.split:
       target: body.objects
       type: array
@@ -36,6 +38,8 @@ filebeat.inputs:
     interval: 1h
     request.url: "https://analytics.dugganusa.com/api/v1/stix-feed/ips.csv"
     request.method: GET
+    request.headers:
+      Authorization: "Bearer dugusa_YOUR_KEY_HERE"   # required
     processors:
       - add_fields:
           target: threat
@@ -49,6 +53,8 @@ filebeat.inputs:
     interval: 1h
     request.url: "https://analytics.dugganusa.com/api/v1/stix-feed/domains.csv"
     request.method: GET
+    request.headers:
+      Authorization: "Bearer dugusa_YOUR_KEY_HERE"   # required
     processors:
       - add_fields:
           target: threat

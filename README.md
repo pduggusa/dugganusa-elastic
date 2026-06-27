@@ -1,6 +1,18 @@
 # DugganUSA Elastic Integration
 
-**Ingest 1M+ threat indicators into Elasticsearch / OpenSearch. Filebeat or Logstash.**
+**Ingest 1.10M+ threat indicators into Elasticsearch / OpenSearch. Filebeat or Logstash.**
+
+## What's New in 1.2.0
+
+The DugganUSA feed now exposes **three live, no-auth validation endpoints** so your detection engineers can independently verify feed quality before wiring it into ECS pipelines. They are durable across our platform deploys, each response tagged with a `source` field (`live` | `durable` | `baseline`):
+
+- **Novelty** — [`/api/v1/feed-uniqueness`](https://analytics.dugganusa.com/api/v1/feed-uniqueness): ~75%+ of our independently-sourced IOCs are **not** in ThreatFox.
+- **Timeliness** — [`/api/v1/kev-lead`](https://analytics.dugganusa.com/api/v1/kev-lead): we flag exploited CVEs roughly **31 days ahead of CISA KEV** on average.
+- **Accuracy** — [`/api/v1/spamhaus-validation`](https://analytics.dugganusa.com/api/v1/spamhaus-validation): Spamhaus independently corroborates our first-hand contributions.
+
+Feed depth also grew with **OSV malicious-package feeds (npm + PyPI)** and **daily GitHub Hunt detections**, on top of 15 external feed sources.
+
+> **Important:** the STIX feed is now **API-key-enforced**. Anonymous requests return `401`; unregistered keys return `429`. The free tier is a **free registered key** — [register here](https://analytics.dugganusa.com/stix/register) and set it via the `Authorization: Bearer` header in the Filebeat/Logstash config.
 
 ## Quick Start (Filebeat)
 
@@ -8,7 +20,7 @@
 # Download config
 curl -O https://raw.githubusercontent.com/pduggusa/dugganusa-elastic/main/filebeat-dugganusa.yml
 
-# Edit: set your Elasticsearch host and optional API key
+# Edit: set your Elasticsearch host and your (required) DugganUSA API key
 vim filebeat-dugganusa.yml
 
 # Run
