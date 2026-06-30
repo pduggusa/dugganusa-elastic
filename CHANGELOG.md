@@ -2,6 +2,12 @@
 
 All notable changes to the DugganUSA Elastic Integration are documented here.
 
+## [1.3.0] - 2026-06-30
+
+### Added
+- **Feed-efficacy hit reporting (liveness loop)** — new `logstash-dugganusa-report.conf` pipeline. When one of our published indicators matches your traffic, it POSTs the hit to `POST /api/v1/feed/hit` via the logstash `http` output (`consumer_kind: 'elastic'`), closing the Liveness validation axis (`/api/v1/feed-efficacy`). Includes a `translate`-filter example that flags matches off the IP blocklist you already sync.
+- **Privacy contract:** the explicit `mapping` in the `http` output is the privacy boundary — only the matched indicator + action/direction/count/ts leave your network, never your source IP, host, user, asset, or the raw event. (The platform also drops any victim-side field server-side.)
+
 ## [1.2.1] - 2026-06-30
 
 ### Added
