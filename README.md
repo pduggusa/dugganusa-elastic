@@ -1,6 +1,6 @@
 # DugganUSA Elastic Integration
 
-**Ingest 1.5M+ threat indicators into Elasticsearch / OpenSearch. Filebeat or Logstash.**
+**Ingest 1.9M+ threat indicators into Elasticsearch / OpenSearch. Filebeat or Logstash.**
 
 ## What's New in 1.3.0
 
