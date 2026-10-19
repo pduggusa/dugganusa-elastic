@@ -1,5 +1,11 @@
 # DugganUSA STIX Feed — Filebeat HTTP JSON Input
-# Polls the STIX feed hourly and indexes indicators into Elasticsearch.
+# Polls the STIX feed and indexes indicators into Elasticsearch.
+#
+# Polling budget: every request (feed, CSV, Tor) counts against your key's daily
+# limit. The FREE key is 10 requests/day, so the defaults below total 7/day
+# (STIX every 6h = 4, each CSV and Tor daily = 3). On a paid key you can drop
+# the intervals to 1h. Hourly polling of all inputs (73/day) exhausts a free key
+# by the fourth hour, and every later poll fails with HTTP 429.
 #
 # Usage:
 #   filebeat -e -c filebeat-dugganusa.yml
@@ -11,14 +17,14 @@
 filebeat.inputs:
   - type: httpjson
     enabled: true
-    interval: 1h
+    interval: 6h
     request.url: "https://analytics.dugganusa.com/api/v1/stix-feed"
     request.method: GET
     request.headers:
       Accept: "application/json"
       # REQUIRED — the feed rejects anonymous requests (401).
       # Register a free key: https://analytics.dugganusa.com/stix/register
-      Authorization: "Bearer dugusa_YOUR_KEY_HERE"
+      Authorization: "Bearer ${DUGGANUSA_API_KEY}"
     response.split:
       target: body.objects
       type: array
@@ -35,11 +41,14 @@ filebeat.inputs:
   # IP blocklist (CSV)
   - type: httpjson
     enabled: true
-    interval: 1h
+    interval: 24h
     request.url: "https://analytics.dugganusa.com/api/v1/stix-feed/ips.csv"
     request.method: GET
     request.headers:
-      Authorization: "Bearer dugusa_YOUR_KEY_HERE"   # required
+      Authorization: "Bearer ${DUGGANUSA_API_KEY}"   # required; read from the environment
+    # The body is CSV, not JSON. Without decode_as httpjson fails to parse it and indexes nothing.
+    # Columns: ip,confidence,threat_type,source,first_seen (one event per row).
+    response.decode_as: text/csv
     processors:
       - add_fields:
           target: threat
@@ -50,11 +59,13 @@ filebeat.inputs:
   # Domain blocklist (CSV)
   - type: httpjson
     enabled: true
-    interval: 1h
+    interval: 24h
     request.url: "https://analytics.dugganusa.com/api/v1/stix-feed/domains.csv"
     request.method: GET
     request.headers:
-      Authorization: "Bearer dugusa_YOUR_KEY_HERE"   # required
+      Authorization: "Bearer ${DUGGANUSA_API_KEY}"   # required; read from the environment
+    # Columns: domain,confidence,threat_type,source,first_seen
+    response.decode_as: text/csv
     processors:
       - add_fields:
           target: threat
@@ -70,8 +81,11 @@ filebeat.inputs:
     request.method: GET
     request.headers:
       Accept: "application/json"
+      # Required: /tor/relays rejects anonymous requests (401).
+      Authorization: "Bearer ${DUGGANUSA_API_KEY}"
     response.split:
-      target: body.data.relays
+      # The response is { data: { hits: [...] } }; there is no data.relays.
+      target: body.data.hits
       type: array
     processors:
       - add_fields:

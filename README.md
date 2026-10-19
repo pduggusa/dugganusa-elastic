@@ -21,7 +21,7 @@ As a feed consumer, you can report hits to the liveness axis with the included `
 
 Feed depth also grew with **OSV malicious-package feeds (npm + PyPI)** and **daily GitHub Hunt detections**, on top of 15 external feed sources.
 
-> **Important:** the STIX feed is now **API-key-enforced**. Anonymous requests return `401`; unregistered keys return `429`. The free tier is a **free registered key** — [register here](https://analytics.dugganusa.com/stix/register) and set it via the `Authorization: Bearer` header in the Filebeat/Logstash config.
+> **Important:** the STIX feed is now **API-key-enforced**. Anonymous requests and unregistered keys return `401`; a key past its daily limit returns `429`. The free tier is a **free registered key** (10 requests/day) — [register here](https://analytics.dugganusa.com/stix/register) and export it as `DUGGANUSA_API_KEY`; the Filebeat and Logstash configs read it from the environment, so the key never sits in a config file.
 
 ## Quick Start (Filebeat)
 
@@ -62,7 +62,7 @@ logstash -f logstash-dugganusa-report.conf
 - **IP blocklist CSV** — for IP-based correlation
 - **Domain blocklist CSV** — for DNS-based correlation
 
-All three polled hourly by default.
+Default schedule fits the free key's 10 requests/day: the STIX bundle every 6 hours and each CSV and the Tor list daily (7 requests/day). On a paid key you can poll hourly.
 
 ## Index Pattern
 

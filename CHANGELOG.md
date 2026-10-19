@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.1] - 2026-10-19
+
+### Fixed
+- **The CSV inputs indexed nothing.** `ips.csv` and `domains.csv` are CSV, and `httpjson` parses bodies as JSON unless told otherwise. Added `response.decode_as: text/csv`.
+- **The Tor input indexed nothing.** It sent no key (`/tor/relays` returns `401` anonymously) and split on `body.data.relays`, which does not exist; the array is `body.data.hits`.
+- **Defaults exhausted a free key by the fourth hour.** Every request counts against the key's daily limit (free: 10/day); hourly polling of all inputs was 73/day. Defaults are now 7/day (STIX 6h, CSVs and Tor daily; Logstash every 6h).
+- The key is read from `${DUGGANUSA_API_KEY}` instead of a `dugusa_YOUR_KEY_HERE` literal pasted into the config. The header comment already said the env var was required; nothing read it.
+- README: unregistered keys get `401`, not `429`.
+
 All notable changes to the DugganUSA Elastic Integration are documented here.
 
 ## [1.3.1] - 2026-09-29
